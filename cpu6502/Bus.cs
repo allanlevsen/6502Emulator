@@ -15,6 +15,7 @@ namespace cpu6502
             //
             // Connect CPU to communication bus
             // cpu.ConnectBus(this);
+            //
             
             ram = new byte[TOTAL_RAM+1];
             ClearMemory();      
