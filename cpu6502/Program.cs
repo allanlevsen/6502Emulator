@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using SFML.Graphics;
+using SFML.Window;
+using SFML.System;
 
 namespace cpu6502;
 
@@ -7,6 +10,23 @@ class Program
 {
     static void Main(string[] args)
     {
+
+            var window = new RenderWindow(new VideoMode(2400, 1500), "80x25 Character Simulator");
+            window.Closed += (sender, e) => window.Close();
+
+            while (window.IsOpen)
+            {
+                window.DispatchEvents();
+                window.Clear(Color.Blue);
+
+                // Draw your characters/text here
+                var font = new Font("JetBrainsMono-Bold.ttf"); // Use any monospace font
+                var text = new Text("Hello, World!", font, 40); // The number 10 is the character size
+                text.Position = new Vector2f(0, 0); // Position on the window
+                window.Draw(text);
+
+                window.Display();
+            }
         OutputAssembly();
     }
 
