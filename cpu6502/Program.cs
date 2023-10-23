@@ -3,31 +3,68 @@ using System.Globalization;
 using SFML.Graphics;
 using SFML.Window;
 using SFML.System;
+using System.ComponentModel.DataAnnotations;
 
 namespace cpu6502;
 
 class Program
 {
+    static RenderWindow window = null;
+    static uint charSize = 30;
+    static uint charWidth = 80;
+    static uint charHeight = 50;
+
     static void Main(string[] args)
     {
+        window = new RenderWindow(new VideoMode(charWidth*charSize, charHeight*charSize), "80x25 Character Simulator");
+        window.Closed += (sender, e) => window.Close();
 
-            var window = new RenderWindow(new VideoMode(2400, 1500), "80x25 Character Simulator");
-            window.Closed += (sender, e) => window.Close();
+        RunAsync().GetAwaiter().GetResult();
+    }
 
-            while (window.IsOpen)
-            {
-                window.DispatchEvents();
-                window.Clear(Color.Blue);
+    static async Task RunAsync()
+    {
+        while (window.IsOpen)
+        {
+            window.DispatchEvents();
+            window.Clear(Color.Blue);
 
-                // Draw your characters/text here
-                var font = new Font("JetBrainsMono-Bold.ttf"); // Use any monospace font
-                var text = new Text("Hello, World!", font, 40); // The number 10 is the character size
-                text.Position = new Vector2f(0, 0); // Position on the window
-                window.Draw(text);
+            WriteText("Hello World", 1, 1);
+            WriteText("This is more test", 1, 2);
 
-                window.Display();
-            }
+            window.Display();
+        }
         OutputAssembly();
+    }
+
+    static void WriteText(string text, int x, int y, Boolean display = false)
+    {
+        if (x>0) x--;
+        if (y>0) y--;
+
+        // Draw your characters/text here
+        // PTM55FT.ttf
+        // JetBrainsMono-Bold.ttf
+        var font = new Font("JetBrainsMono-Bold.ttf"); // Use any monospace font
+        var writeText = new Text(text, font, charSize); // The number 10 is the character size
+        writeText.Position = new Vector2f(x*charSize, y*charSize); // Position on the window
+        window.Draw(writeText);
+        if (display)
+            window.Display();
+    }
+    static Task<Keyboard.Key> WaitForKeypress(RenderWindow window)
+    {
+        var tcs = new TaskCompletionSource<Keyboard.Key>();
+
+        void OnKeyPressed(object? sender, KeyEventArgs e)
+        {
+            window.KeyPressed -= OnKeyPressed; // Unsubscribe after keypress
+            tcs.SetResult(e.Code);
+        }
+
+        window.KeyPressed += OnKeyPressed;
+
+        return tcs.Task;
     }
 
     static void OutputAssembly()
