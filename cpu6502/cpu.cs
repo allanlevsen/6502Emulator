@@ -202,7 +202,7 @@ namespace cpu6502
         // memory to start executing from. Typically the programmer would set the value
         // at location 0xFFFC at compile time.
         //
-        void reset()
+        public void reset()
         {
             // Get address to set program counter to
             addr_abs = 0xFFFC;
@@ -247,7 +247,7 @@ namespace cpu6502
         // is read form hard coded location 0xFFFE, which is subsequently
         // set to the program counter.
         //
-        void irq()
+        public void irq()
         {
             // If interrupts are allowed
             if (GetFlag(Flag.I) == 0)
@@ -282,7 +282,7 @@ namespace cpu6502
         // same way as a regular IRQ, but reads the new program counter address
         // form location 0xFFFA.
         //
-        void nmi()
+        public void nmi()
         {
             // Push the program counter to the stack. It's 16-bits dont
             // forget so that takes two pushes
@@ -309,7 +309,7 @@ namespace cpu6502
 
         // Perform one clock cycles worth of emulation
         //
-        void clock()
+        public void clock()
         {
             // Each instruction requires a variable number of clock cycles to execute.
             // In my emulation, I only care about the final result and so I perform
@@ -377,7 +377,7 @@ namespace cpu6502
 
         // Sets or clears a specific bit of the status register
         //
-        void SetFlag(Flag f, bool v)
+        public void SetFlag(Flag f, bool v)
         {
             byte flag = (byte)f;
             if (v)
