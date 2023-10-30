@@ -2,8 +2,11 @@
 {
     public interface IBus
 	{
-        byte Read(ushort addr, bool readOnly = false);
-        void Write(ushort addr, byte data);
+        void cpuWrite(ushort addr, byte data);
+        byte cpuRead(ushort addr, bool bReadOnly);
+        void insertCartridge(Cartridge cartridge);
+        void reset();
+        void clock();
 	}
 }
 

@@ -1,0 +1,14 @@
+function removeItem() {
+    const ul = document.getElementById("myList");
+    const liElements = ul.getElementsByTagName("li");
+    const targetValue = document.getElementById("newItemInput").value;
+
+    for (let i = 0; i < liElements.length; i++) {
+        if (liElements[i].innerHTML === targetValue) {
+            ul.removeChild(liElements[i]);
+            i--;
+        }
+    }
+}
+
+

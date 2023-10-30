@@ -8,7 +8,7 @@ namespace cpu6502
     public class Cpu : ICpu
 	{
         public Bus bus;
-        public Dictionary<byte, OpCode> ops;
+        public OpCode[] ops;
 
         // CPU Core registers, exposed as public here for ease of access from external
         // examinors. This is all the 6502 has.
@@ -57,9 +57,8 @@ namespace cpu6502
 
         public Cpu()
 		{
-			bus = new Bus();
-            ops = new InstructionSet(this).Ops;
-            
+			// bus = new Bus(this);
+            ops = new InstructionSet(this).Ops;     
         }
 
 
@@ -103,89 +102,95 @@ namespace cpu6502
                 string sInst = "$" + hex(addr, 4) + ": ";
 
                 // Read instruction, and get its readable name
-                byte opcode = bus.Read(addr, true); addr++;
-                sInst += ops[opcode].name + " ";
+                byte opcode = bus.cpuRead(addr, true); addr++;
+                //if (ops.ContainsKey(opcode)) {
 
-                // Get oprands from desired locations, and form the
-                // instruction based upon its addressing mode. These
-                // routines mimmick the actual fetch routine of the
-                // 6502 in order to get accurate data as part of the
-                // instruction
+                    sInst += ops[opcode].name + " ";
 
-                if (ops[opcode].am == this.IMP)
-                {
-                    sInst += " {IMP}";
-                }
-                else if (ops[opcode].am == this.IMM)
-                {
-                    value = bus.Read(addr, true); addr++;
-                    sInst += "#$" + hex(value, 2) + " {IMM}";
-                }
-                else if (ops[opcode].am == ZP0)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = 0x00;
-                    sInst += "$" + hex(lo, 2) + " {ZP0}";
-                }
-                else if (ops[opcode].am == ZPX)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = 0x00;
-                    sInst += "$" + hex(lo, 2) + ", X {ZPX}";
-                }
-                else if (ops[opcode].am == ZPY)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = 0x00;
-                    sInst += "$" + hex(lo, 2) + ", Y {ZPY}";
-                }
-                else if (ops[opcode].am == IZX)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = 0x00;
-                    sInst += "($" + hex(lo, 2) + ", X) {IZX}";
-                }
-                else if (ops[opcode].am == IZY)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = 0x00;
-                    sInst += "($" + hex(lo, 2) + "), Y {IZY}";
-                }
-                else if (ops[opcode].am == ABS)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = bus.Read(addr, true); addr++;
-                    sInst += "$" + hex((ushort)((hi << 8) | lo), 4) + " {ABS}";
-                }
-                else if (ops[opcode].am == ABX)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = bus.Read(addr, true); addr++;
-                    sInst += "$" + hex((ushort)((hi << 8) | lo), 4) + ", X {ABX}";
-                }
-                else if (ops[opcode].am == ABY)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = bus.Read(addr, true); addr++;
-                    sInst += "$" + hex((ushort)((hi << 8) | lo), 4) + ", Y {ABY}";
-                }
-                else if (ops[opcode].am == IND)
-                {
-                    lo = bus.Read(addr, true); addr++;
-                    hi = bus.Read(addr, true); addr++;
-                    sInst += "($" + hex((ushort)((hi << 8) | lo), 4) + ") {IND}";
-                }
-                else if (ops[opcode].am == REL)
-                {
-                    value = bus.Read(addr, true); addr++;
-                    sInst += "$" + hex(value, 2) + " [$" + hex((ushort)(addr + value), 4) + "] {REL}";
-                }
+                    // Get oprands from desired locations, and form the
+                    // instruction based upon its addressing mode. These
+                    // routines mimmick the actual fetch routine of the
+                    // 6502 in order to get accurate data as part of the
+                    // instruction
 
-                // Add the formed string to a std::map, using the instruction's
-                // address as the key. This makes it convenient to look for later
-                // as the instructions are variable in length, so a straight up
-                // incremental index is not sufficient.
-                mapLines.Add(line_addr, sInst);
+                    if (ops[opcode].am == this.IMP)
+                    {
+                        sInst += " {IMP}";
+                    }
+                    else if (ops[opcode].am == this.IMM)
+                    {
+                        value = bus.cpuRead(addr, true); addr++;
+                        sInst += "#$" + hex(value, 2) + " {IMM}";
+                    }
+                    else if (ops[opcode].am == ZP0)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = 0x00;
+                        sInst += "$" + hex(lo, 2) + " {ZP0}";
+                    }
+                    else if (ops[opcode].am == ZPX)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = 0x00;
+                        sInst += "$" + hex(lo, 2) + ", X {ZPX}";
+                    }
+                    else if (ops[opcode].am == ZPY)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = 0x00;
+                        sInst += "$" + hex(lo, 2) + ", Y {ZPY}";
+                    }
+                    else if (ops[opcode].am == IZX)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = 0x00;
+                        sInst += "($" + hex(lo, 2) + ", X) {IZX}";
+                    }
+                    else if (ops[opcode].am == IZY)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = 0x00;
+                        sInst += "($" + hex(lo, 2) + "), Y {IZY}";
+                    }
+                    else if (ops[opcode].am == ABS)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = bus.cpuRead(addr, true); addr++;
+                        sInst += "$" + hex((ushort)((hi << 8) | lo), 4) + " {ABS}";
+                    }
+                    else if (ops[opcode].am == ABX)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = bus.cpuRead(addr, true); addr++;
+                        sInst += "$" + hex((ushort)((hi << 8) | lo), 4) + ", X {ABX}";
+                    }
+                    else if (ops[opcode].am == ABY)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = bus.cpuRead(addr, true); addr++;
+                        sInst += "$" + hex((ushort)((hi << 8) | lo), 4) + ", Y {ABY}";
+                    }
+                    else if (ops[opcode].am == IND)
+                    {
+                        lo = bus.cpuRead(addr, true); addr++;
+                        hi = bus.cpuRead(addr, true); addr++;
+                        sInst += "($" + hex((ushort)((hi << 8) | lo), 4) + ") {IND}";
+                    }
+                    else if (ops[opcode].am == REL)
+                    {
+                        value = bus.cpuRead(addr, true); addr++;
+                        sInst += "$" + hex(value, 2) + " [$" + hex((ushort)(addr + value), 4) + "] {REL}";
+                    }
+
+                    // Add the formed string to a std::map, using the instruction's
+                    // address as the key. This makes it convenient to look for later
+                    // as the instructions are variable in length, so a straight up
+                    // incremental index is not sufficient.
+                    if(!mapLines.ContainsKey(line_addr))
+                        mapLines.Add(line_addr, sInst);
+                    else
+                        addr++;
+                //}
             }
 
             return mapLines;
@@ -416,14 +421,14 @@ namespace cpu6502
             // is intentional under normal circumstances. However the disassembler will
             // want to read the data at an address without changing the state of the
             // devices on the bus
-            return bus.Read(a, false);
+            return bus.cpuRead(a, false);
         }
 
         // Writes a byte to the bus at the specified address
         //
         void Write(ushort a, byte d)
         {
-            bus.Write(a, d);
+            bus.cpuWrite(a, d);
         }
 
 
@@ -1604,6 +1609,12 @@ namespace cpu6502
             a = y;
             SetFlag(Flag.Z, a == 0x00);
             SetFlag(Flag.N, (a & 0x80) > 0);
+            return 0;
+        }
+
+        // This function captures illegal opcodes
+        public byte XXX()
+        {
             return 0;
         }
 

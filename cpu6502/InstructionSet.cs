@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
 using cpu6502.Interfaces;
 
 namespace cpu6502
@@ -6,175 +7,42 @@ namespace cpu6502
 	public class InstructionSet
 	{
         private Cpu cpu;
-        private OpCode[] opCodes;
-        public Dictionary<byte, OpCode> Ops;
+        public OpCode[] Ops;
+        //public Dictionary<byte, OpCode> Ops;
 
+        
         public InstructionSet(Cpu cpu)
         {
+
             // check these .. something is wrong here (we had 2 0x09's
             this.cpu = cpu;
-            this.opCodes = new OpCode[]
-            {
-                new OpCode { opcode = 0x00, name = "BRK", op = cpu.BRK, am = cpu.IMM, cycles = 4 },
-                new OpCode { opcode = 0x01, name = "ORA", op = cpu.ORA, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0x05, name = "ORA", op = cpu.ORA, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x06, name = "ASL", op = cpu.ASL, am = cpu.ZP0, cycles = 5 },
-                new OpCode { opcode = 0x08, name = "PHP", op = cpu.PHP, am = cpu.IMP, cycles = 3 },
-                new OpCode { opcode = 0x09, name = "ORA", op = cpu.ORA, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0x0A, name = "ASL", op = cpu.ASL, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x0D, name = "ORA", op = cpu.ORA, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x0E, name = "ASL", op = cpu.ASL, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0x10, name = "BPL", op = cpu.BPL, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0x11, name = "ORA", op = cpu.ORA, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0x15, name = "ORA", op = cpu.ORA, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0x16, name = "ASL", op = cpu.ASL, am = cpu.ZPX, cycles = 6 },
-                new OpCode { opcode = 0x18, name = "CLC", op = cpu.CLC, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x19, name = "ORA", op = cpu.ORA, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0x1D, name = "ORA", op = cpu.ORA, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0x1E, name = "ASL", op = cpu.ASL, am = cpu.ABX, cycles = 7 },
-                new OpCode { opcode = 0x20, name = "JSR", op = cpu.JSR, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0x21, name = "AND", op = cpu.AND, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0x24, name = "BIT", op = cpu.BIT, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x25, name = "AND", op = cpu.AND, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x26, name = "ROL", op = cpu.ROL, am = cpu.ZP0, cycles = 5 },
-                new OpCode { opcode = 0x28, name = "PLP", op = cpu.PLP, am = cpu.IMP, cycles = 4 },
-                new OpCode { opcode = 0x29, name = "AND", op = cpu.AND, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0x2A, name = "ROL", op = cpu.ROL, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x2C, name = "BIT", op = cpu.BIT, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x2D, name = "AND", op = cpu.AND, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x2E, name = "ROL", op = cpu.ROL, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0x30, name = "BMI", op = cpu.BMI, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0x31, name = "AND", op = cpu.AND, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0x35, name = "AND", op = cpu.AND, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0x36, name = "ROL", op = cpu.ROL, am = cpu.ZPX, cycles = 6 },
-                new OpCode { opcode = 0x38, name = "SEC", op = cpu.SEC, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x39, name = "AND", op = cpu.AND, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0x3D, name = "AND", op = cpu.AND, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0x3E, name = "ROL", op = cpu.ROL, am = cpu.ABX, cycles = 7 },
-                new OpCode { opcode = 0x40, name = "RTI", op = cpu.RTI, am = cpu.IMP, cycles = 6 },
-                new OpCode { opcode = 0x41, name = "EOR", op = cpu.EOR, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0x45, name = "EOR", op = cpu.EOR, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x46, name = "LSR", op = cpu.LSR, am = cpu.ZP0, cycles = 5 },
-                new OpCode { opcode = 0x48, name = "PHA", op = cpu.PHA, am = cpu.IMP, cycles = 3 },
-                new OpCode { opcode = 0x49, name = "EOR", op = cpu.EOR, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0x4A, name = "LSR", op = cpu.LSR, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x4C, name = "JMP", op = cpu.JMP, am = cpu.ABS, cycles = 3 },
-                new OpCode { opcode = 0x4D, name = "EOR", op = cpu.EOR, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x4E, name = "LSR", op = cpu.LSR, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0x50, name = "BVC", op = cpu.BVC, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0x51, name = "EOR", op = cpu.EOR, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0x55, name = "EOR", op = cpu.EOR, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0x56, name = "LSR", op = cpu.LSR, am = cpu.ZPX, cycles = 6 },
-                new OpCode { opcode = 0x58, name = "CLI", op = cpu.CLI, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x59, name = "EOR", op = cpu.EOR, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0x5D, name = "EOR", op = cpu.EOR, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0x5E, name = "LSR", op = cpu.LSR, am = cpu.ABX, cycles = 7 },
-                new OpCode { opcode = 0x60, name = "RTS", op = cpu.RTS, am = cpu.IMP, cycles = 6 },
-                new OpCode { opcode = 0x61, name = "ADC", op = cpu.ADC, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0x65, name = "ADC", op = cpu.ADC, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x66, name = "ROR", op = cpu.ROR, am = cpu.ZP0, cycles = 5 },
-                new OpCode { opcode = 0x68, name = "PLA", op = cpu.PLA, am = cpu.IMP, cycles = 4 },
-                new OpCode { opcode = 0x69, name = "ADC", op = cpu.ADC, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0x6A, name = "ROR", op = cpu.ROR, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x6C, name = "JMP", op = cpu.JMP, am = cpu.IND, cycles = 5 },
-                new OpCode { opcode = 0x6D, name = "ADC", op = cpu.ADC, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x6E, name = "ROR", op = cpu.ROR, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0x70, name = "BVS", op = cpu.BVS, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0x71, name = "ADC", op = cpu.ADC, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0x75, name = "ADC", op = cpu.ADC, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0x76, name = "ROR", op = cpu.ROR, am = cpu.ZPX, cycles = 6 },
-                new OpCode { opcode = 0x78, name = "SEI", op = cpu.SEI, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x79, name = "ADC", op = cpu.ADC, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0x7D, name = "ADC", op = cpu.ADC, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0x7E, name = "ROR", op = cpu.ROR, am = cpu.ABX, cycles = 7 },
-                new OpCode { opcode = 0x81, name = "STA", op = cpu.STA, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0x84, name = "STY", op = cpu.STY, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x85, name = "STA", op = cpu.STA, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x86, name = "STX", op = cpu.STX, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0x88, name = "DEY", op = cpu.DEY, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x8A, name = "TXA", op = cpu.TXA, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x8C, name = "STY", op = cpu.STY, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x8D, name = "STA", op = cpu.STA, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x8E, name = "STX", op = cpu.STX, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0x90, name = "BCC", op = cpu.BCC, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0x91, name = "STA", op = cpu.STA, am = cpu.IZY, cycles = 6 },
-                new OpCode { opcode = 0x94, name = "STY", op = cpu.STY, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0x95, name = "STA", op = cpu.STA, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0x96, name = "STX", op = cpu.STX, am = cpu.ZPY, cycles = 4 },
-                new OpCode { opcode = 0x98, name = "TYA", op = cpu.TYA, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x99, name = "STA", op = cpu.STA, am = cpu.ABY, cycles = 5 },
-                new OpCode { opcode = 0x9A, name = "TXS", op = cpu.TXS, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0x9D, name = "STA", op = cpu.STA, am = cpu.ABX, cycles = 5 },
-                new OpCode { opcode = 0xA0, name = "LDY", op = cpu.LDY, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xA1, name = "LDA", op = cpu.LDA, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0xA2, name = "LDX", op = cpu.LDX, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xA4, name = "LDY", op = cpu.LDY, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xA5, name = "LDA", op = cpu.LDA, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xA6, name = "LDX", op = cpu.LDX, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xA8, name = "TAY", op = cpu.TAY, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xA9, name = "LDA", op = cpu.LDA, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xAA, name = "TAX", op = cpu.TAX, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xAC, name = "LDY", op = cpu.LDY, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xAD, name = "LDA", op = cpu.LDA, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xAE, name = "LDX", op = cpu.LDX, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xB0, name = "BCS", op = cpu.BCS, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0xB1, name = "LDA", op = cpu.LDA, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0xB4, name = "LDY", op = cpu.LDY, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0xB5, name = "LDA", op = cpu.LDA, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0xB6, name = "LDX", op = cpu.LDX, am = cpu.ZPY, cycles = 4 },
-                new OpCode { opcode = 0xB8, name = "CLV", op = cpu.CLV, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xB9, name = "LDA", op = cpu.LDA, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0xBA, name = "TSX", op = cpu.TSX, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xBC, name = "LDY", op = cpu.LDY, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0xBD, name = "LDA", op = cpu.LDA, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0xBE, name = "LDX", op = cpu.LDX, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0xC0, name = "CPY", op = cpu.CPY, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xC1, name = "CMP", op = cpu.CMP, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0xC4, name = "CPY", op = cpu.CPY, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xC5, name = "CMP", op = cpu.CMP, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xC6, name = "DEC", op = cpu.DEC, am = cpu.ZP0, cycles = 5 },
-                new OpCode { opcode = 0xC8, name = "INY", op = cpu.INY, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xC9, name = "CMP", op = cpu.CMP, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xCA, name = "DEX", op = cpu.DEX, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xCC, name = "CPY", op = cpu.CPY, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xCD, name = "CMP", op = cpu.CMP, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xCE, name = "DEC", op = cpu.DEC, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0xD0, name = "BNE", op = cpu.BNE, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0xD1, name = "CMP", op = cpu.CMP, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0xD5, name = "CMP", op = cpu.CMP, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0xD6, name = "DEC", op = cpu.DEC, am = cpu.ZPX, cycles = 6 },
-                new OpCode { opcode = 0xD8, name = "CLD", op = cpu.CLD, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xD9, name = "CMP", op = cpu.CMP, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0xDD, name = "CMP", op = cpu.CMP, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0xDE, name = "DEC", op = cpu.DEC, am = cpu.ABX, cycles = 7 },
-                new OpCode { opcode = 0xE0, name = "CPX", op = cpu.CPX, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xE1, name = "SBC", op = cpu.SBC, am = cpu.IZX, cycles = 6 },
-                new OpCode { opcode = 0xE4, name = "CPX", op = cpu.CPX, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xE5, name = "SBC", op = cpu.SBC, am = cpu.ZP0, cycles = 3 },
-                new OpCode { opcode = 0xE6, name = "INC", op = cpu.INC, am = cpu.ZP0, cycles = 5 },
-                new OpCode { opcode = 0xE8, name = "INX", op = cpu.INX, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xE9, name = "SBC", op = cpu.SBC, am = cpu.IMM, cycles = 2 },
-                new OpCode { opcode = 0xEA, name = "NOP", op = cpu.NOP, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xEC, name = "CPX", op = cpu.CPX, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xED, name = "SBC", op = cpu.SBC, am = cpu.ABS, cycles = 4 },
-                new OpCode { opcode = 0xEE, name = "INC", op = cpu.INC, am = cpu.ABS, cycles = 6 },
-                new OpCode { opcode = 0xF0, name = "BEQ", op = cpu.BEQ, am = cpu.REL, cycles = 2 },
-                new OpCode { opcode = 0xF1, name = "SBC", op = cpu.SBC, am = cpu.IZY, cycles = 5 },
-                new OpCode { opcode = 0xF5, name = "SBC", op = cpu.SBC, am = cpu.ZPX, cycles = 4 },
-                new OpCode { opcode = 0xF6, name = "INC", op = cpu.INC, am = cpu.ZPX, cycles = 6 },
-                new OpCode { opcode = 0xF8, name = "SED", op = cpu.SED, am = cpu.IMP, cycles = 2 },
-                new OpCode { opcode = 0xF9, name = "SBC", op = cpu.SBC, am = cpu.ABY, cycles = 4 },
-                new OpCode { opcode = 0xFD, name = "SBC", op = cpu.SBC, am = cpu.ABX, cycles = 4 },
-                new OpCode { opcode = 0xFE, name = "INC", op = cpu.INC, am = cpu.ABX, cycles = 7 }
+
+            this.Ops = new OpCode[] {
+                new OpCode { name = "BRK", op = cpu.BRK, am = cpu.IMM, cycles = 7 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 3 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "ASL", op = cpu.ASL, am = cpu.ZP0, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "PHP", op = cpu.PHP, am = cpu.IMP, cycles = 3 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.IMM, cycles = 2 }, new OpCode { name = "ASL", op = cpu.ASL, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.ABS, cycles = 4 }, new OpCode { name = "ASL", op = cpu.ASL, am = cpu.ABS, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 },
+                new OpCode { name = "BPL", op = cpu.BPL, am = cpu.REL, cycles = 2 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "ASL", op = cpu.ASL, am = cpu.ZPX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "CLC", op = cpu.CLC, am = cpu.IMP, cycles = 2 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.ABY, cycles = 4 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "ORA", op = cpu.ORA, am = cpu.ABX, cycles = 4 }, new OpCode { name = "ASL", op = cpu.ASL, am = cpu.ABX, cycles = 7 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 },
+                new OpCode { name = "JSR", op = cpu.JSR, am = cpu.ABS, cycles = 6 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "BIT", op = cpu.BIT, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "ROL", op = cpu.ROL, am = cpu.ZP0, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "PLP", op = cpu.PLP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.IMM, cycles = 2 }, new OpCode { name = "ROL", op = cpu.ROL, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "BIT", op = cpu.BIT, am = cpu.ABS, cycles = 4 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.ABS, cycles = 4 }, new OpCode { name = "ROL", op = cpu.ROL, am = cpu.ABS, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 },
+                new OpCode { name = "BMI", op = cpu.BMI, am = cpu.REL, cycles = 2 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "ROL", op = cpu.ROL, am = cpu.ZPX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "SEC", op = cpu.SEC, am = cpu.IMP, cycles = 2 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.ABY, cycles = 4 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "AND", op = cpu.AND, am = cpu.ABX, cycles = 4 }, new OpCode { name = "ROL", op = cpu.ROL, am = cpu.ABX, cycles = 7 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 },
+                new OpCode { name = "RTI", op = cpu.RTI, am = cpu.IMP, cycles = 6 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 3 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "LSR", op = cpu.LSR, am = cpu.ZP0, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "PHA", op = cpu.PHA, am = cpu.IMP, cycles = 3 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.IMM, cycles = 2 }, new OpCode { name = "LSR", op = cpu.LSR, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "JMP", op = cpu.JMP, am = cpu.ABS, cycles = 3 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.ABS, cycles = 4 }, new OpCode { name = "LSR", op = cpu.LSR, am = cpu.ABS, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 },
+                new OpCode { name = "BVC", op = cpu.BVC, am = cpu.REL, cycles = 2 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "LSR", op = cpu.LSR, am = cpu.ZPX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "CLI", op = cpu.CLI, am = cpu.IMP, cycles = 2 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.ABY, cycles = 4 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "EOR", op = cpu.EOR, am = cpu.ABX, cycles = 4 }, new OpCode { name = "LSR", op = cpu.LSR, am = cpu.ABX, cycles = 7 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 },
+                new OpCode { name = "RTS", op = cpu.RTS, am = cpu.IMP, cycles = 6 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 3 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "ROR", op = cpu.ROR, am = cpu.ZP0, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "PLA", op = cpu.PLA, am = cpu.IMP, cycles = 4 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.IMM, cycles = 2 }, new OpCode { name = "ROR", op = cpu.ROR, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "JMP", op = cpu.JMP, am = cpu.IND, cycles = 5 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.ABS, cycles = 4 }, new OpCode { name = "ROR", op = cpu.ROR, am = cpu.ABS, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 },
+                new OpCode { name = "BVS", op = cpu.BVS, am = cpu.REL, cycles = 2 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "ROR", op = cpu.ROR, am = cpu.ZPX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "SEI", op = cpu.SEI, am = cpu.IMP, cycles = 2 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.ABY, cycles = 4 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "ADC", op = cpu.ADC, am = cpu.ABX, cycles = 4 }, new OpCode { name = "ROR", op = cpu.ROR, am = cpu.ABX, cycles = 7 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 },
+                new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "STY", op = cpu.STY, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "STX", op = cpu.STX, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 3 }, new OpCode { name = "DEY", op = cpu.DEY, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "TXA", op = cpu.TXA, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "STY", op = cpu.STY, am = cpu.ABS, cycles = 4 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.ABS, cycles = 4 }, new OpCode { name = "STX", op = cpu.STX, am = cpu.ABS, cycles = 4 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 4 },
+                new OpCode { name = "BCC", op = cpu.BCC, am = cpu.REL, cycles = 2 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.IZY, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "STY", op = cpu.STY, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "STX", op = cpu.STX, am = cpu.ZPY, cycles = 4 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 4 }, new OpCode { name = "TYA", op = cpu.TYA, am = cpu.IMP, cycles = 2 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.ABY, cycles = 5 }, new OpCode { name = "TXS", op = cpu.TXS, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 5 }, new OpCode { name = "STA", op = cpu.STA, am = cpu.ABX, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 },
+                new OpCode { name = "LDY", op = cpu.LDY, am = cpu.IMM, cycles = 2 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.IZX, cycles = 6 }, new OpCode { name = "LDX", op = cpu.LDX, am = cpu.IMM, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "LDY", op = cpu.LDY, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "LDX", op = cpu.LDX, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 3 }, new OpCode { name = "TAY", op = cpu.TAY, am = cpu.IMP, cycles = 2 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.IMM, cycles = 2 }, new OpCode { name = "TAX", op = cpu.TAX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "LDY", op = cpu.LDY, am = cpu.ABS, cycles = 4 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.ABS, cycles = 4 }, new OpCode { name = "LDX", op = cpu.LDX, am = cpu.ABS, cycles = 4 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 4 },
+                new OpCode { name = "BCS", op = cpu.BCS, am = cpu.REL, cycles = 2 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "LDY", op = cpu.LDY, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "LDX", op = cpu.LDX, am = cpu.ZPY, cycles = 4 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 4 }, new OpCode { name = "CLV", op = cpu.CLV, am = cpu.IMP, cycles = 2 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.ABY, cycles = 4 }, new OpCode { name = "TSX", op = cpu.TSX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 4 }, new OpCode { name = "LDY", op = cpu.LDY, am = cpu.ABX, cycles = 4 }, new OpCode { name = "LDA", op = cpu.LDA, am = cpu.ABX, cycles = 4 }, new OpCode { name = "LDX", op = cpu.LDX, am = cpu.ABY, cycles = 4 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 4 },
+                new OpCode { name = "CPY", op = cpu.CPY, am = cpu.IMM, cycles = 2 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "CPY", op = cpu.CPY, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "DEC", op = cpu.DEC, am = cpu.ZP0, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "INY", op = cpu.INY, am = cpu.IMP, cycles = 2 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.IMM, cycles = 2 }, new OpCode { name = "DEX", op = cpu.DEX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "CPY", op = cpu.CPY, am = cpu.ABS, cycles = 4 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.ABS, cycles = 4 }, new OpCode { name = "DEC", op = cpu.DEC, am = cpu.ABS, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 },
+                new OpCode { name = "BNE", op = cpu.BNE, am = cpu.REL, cycles = 2 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "DEC", op = cpu.DEC, am = cpu.ZPX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "CLD", op = cpu.CLD, am = cpu.IMP, cycles = 2 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.ABY, cycles = 4 }, new OpCode { name = "NOP", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "CMP", op = cpu.CMP, am = cpu.ABX, cycles = 4 }, new OpCode { name = "DEC", op = cpu.DEC, am = cpu.ABX, cycles = 7 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 },
+                new OpCode { name = "CPX", op = cpu.CPX, am = cpu.IMM, cycles = 2 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.IZX, cycles = 6 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "CPX", op = cpu.CPX, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.ZP0, cycles = 3 }, new OpCode { name = "INC", op = cpu.INC, am = cpu.ZP0, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 5 }, new OpCode { name = "INX", op = cpu.INX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.IMM, cycles = 2 }, new OpCode { name = "NOP", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.SBC, am = cpu.IMP, cycles = 2 }, new OpCode { name = "CPX", op = cpu.CPX, am = cpu.ABS, cycles = 4 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.ABS, cycles = 4 }, new OpCode { name = "INC", op = cpu.INC, am = cpu.ABS, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 },
+                new OpCode { name = "BEQ", op = cpu.BEQ, am = cpu.REL, cycles = 2 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.IZY, cycles = 5 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 8 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.ZPX, cycles = 4 }, new OpCode { name = "INC", op = cpu.INC, am = cpu.ZPX, cycles = 6 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 6 }, new OpCode { name = "SED", op = cpu.SED, am = cpu.IMP, cycles = 2 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.ABY, cycles = 4 }, new OpCode { name = "NOP", op = cpu.NOP, am = cpu.IMP, cycles = 2 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 }, new OpCode { name = "???", op = cpu.NOP, am = cpu.IMP, cycles = 4 }, new OpCode { name = "SBC", op = cpu.SBC, am = cpu.ABX, cycles = 4 }, new OpCode { name = "INC", op = cpu.INC, am = cpu.ABX, cycles = 7 }, new OpCode { name = "???", op = cpu.XXX, am = cpu.IMP, cycles = 7 },
+               
             };
 
-            Ops = new Dictionary<byte, OpCode>();
-            foreach (var op in opCodes)
-            {
-                Ops.Add(op.opcode, op);
-            }
+            for(int oc = 0; oc<=255; oc++)
+                Ops[oc].opcode = (byte)oc;
 
         }
+    
+   
     }
 }
 
