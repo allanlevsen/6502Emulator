@@ -179,7 +179,7 @@ namespace cpu6502
                     else if (ops[opcode].am == REL)
                     {
                         value = bus.cpuRead(addr, true); addr++;
-                        sInst += "$" + hex(value, 2) + " [$" + hex((ushort)(addr + value), 4) + "] {REL}";
+                        sInst += "$" + hex(value, 2) + " [$" + hex((ushort)(addr + (sbyte)value), 4) + "] {REL}";
                     }
 
                     // Add the formed string to a std::map, using the instruction's
