@@ -29,7 +29,7 @@ namespace cpu6502
         // 2KB of RAM
         public byte[] cpuRam = new byte[2048]; // 2048 bytes
         // Controllers
-        public byte[] controller; // 2 bytes
+        public byte[] controller= new byte[2]; // 2 bytes
 
         // A count of how many clocks have passed
         uint nSystemClockCounter = 0;
@@ -72,19 +72,6 @@ namespace cpu6502
             for (int i = 0; i < TOTAL_RAM; i++) ram[i] = 0x00;
         }
 
-        // public byte Read(ushort addr, bool readOnly = false)
-        // {
-        //     if (addr >= 0x0000 && addr <= 0xFFFF)
-        //         return ram[addr];
-
-        //     return 0x00;
-        // }
-
-        // public void Write(ushort addr, byte data)
-        // {
-        //     if (addr >= 0x0000 && addr <= 0xFFFF)
-        //         ram[addr] = data;
-        // }
         public void cpuWrite(ushort addr, byte data)
         {	
             if (cart.CpuWrite(addr, data))
@@ -112,7 +99,7 @@ namespace cpu6502
                 // and these are repeated throughout this range. We can
                 // use bitwise AND operation to mask the bottom 3 bits, 
                 // which is the equivalent of addr % 8.
-                ppu.CpuWrite((ushort)(addr & (ushort)0x0007), data);
+                ppu.CpuWrite((ushort)(addr & 0x0007), data);
             }	
             else if (addr == 0x4014)
             {
@@ -129,10 +116,10 @@ namespace cpu6502
             
         }
 
-        public byte cpuRead(ushort addr, bool bReadOnly)
+        public byte cpuRead(ushort addr, bool bReadOnly = false)
         {
             byte data = 0x00;	
-            if (cart.CpuRead(addr, out data))
+            if (cart.CpuRead(addr, ref data))
             {
                 // Cartridge Address Range
             }
@@ -144,7 +131,7 @@ namespace cpu6502
             else if (addr >= 0x2000 && addr <= 0x3FFF)
             {
                 // PPU Address range, mirrored every 8
-                data = ppu.CpuRead((ushort)(addr & (ushort)0x0007), bReadOnly);
+                data = ppu.CpuRead((ushort)(addr & 0x0007), bReadOnly);
             }
             else if (addr >= 0x4016 && addr <= 0x4017)
             {
@@ -219,7 +206,7 @@ namespace cpu6502
                         {
                             // On even clock cycles, read from CPU bus
                             //dma_data = cpuRead(dma_page << 8 | dma_addr);
-                            dma_data = cpuRead((ushort)(((ushort)dma_page << (ushort)8) | (ushort)dma_addr), false);
+                            dma_data = cpuRead((ushort)(dma_page << 8 | dma_addr));
                         }
                         else
                         {

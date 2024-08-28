@@ -28,13 +28,13 @@ namespace cpu6502
          public char[] unused;
       }
 
-      private bool bImageValid;
-      private IMapper pMapper;
-      private byte nPRGBanks;
-      private byte nCHRBanks;
+      private bool bImageValid = false;
+      private int nMapperID = 0;
+      private byte nPRGBanks = 0;
+      private byte nCHRBanks = 0;
       private List<byte> vPRGMemory;
       private List<byte> vCHRMemory;
-      private int nMapperID;
+      private IMapper pMapper;
 
       public Cartridge(string sFileName)
       {
@@ -78,14 +78,16 @@ namespace cpu6502
                   else
                   {
                      vCHRMemory = new List<byte>(nCHRBanks * 8192);
-                     vCHRMemory.AddRange(reader.ReadBytes(nCHRBanks * 8192));
                   }
+                  vCHRMemory.AddRange(reader.ReadBytes(nCHRBanks * 8192));
                }
 
                switch (nMapperID)
                {
                   case 0: pMapper = new Mapper_000(nPRGBanks, nCHRBanks); break;
-                  // Add other cases for other mappers as needed
+                  //case   2: pMapper = std::make_shared<Mapper_002>(nPRGBanks, nCHRBanks); break;
+                  //case   3: pMapper = std::make_shared<Mapper_003>(nPRGBanks, nCHRBanks); break;
+                  //case  66: pMapper = std::make_shared<Mapper_066>(nPRGBanks, nCHRBanks); break;
                }
 
                bImageValid = true;
@@ -94,7 +96,7 @@ namespace cpu6502
 
       public bool ImageValid() => bImageValid;
 
-      public bool CpuRead(ushort addr, out byte data)
+      public bool CpuRead(ushort addr, ref byte data)
       {
          uint mapped_addr = 0;
          if (pMapper.CpuMapRead(addr, out mapped_addr))
@@ -102,11 +104,8 @@ namespace cpu6502
                data = vPRGMemory[(int)mapped_addr];
                return true;
          }
-         else
-         {
-               data = 0;
-               return false;
-         }
+
+         return false;
       }
 
       public bool CpuWrite(ushort addr, byte data)
@@ -123,7 +122,7 @@ namespace cpu6502
          }
       }
 
-      public bool PpuRead(ushort addr, out byte data)
+      public bool PpuRead(ushort addr, ref byte data)
       {
          uint mapped_addr = 0;
          if (pMapper.PpuMapRead(addr, out mapped_addr))
@@ -131,11 +130,8 @@ namespace cpu6502
                data = vCHRMemory[(int)mapped_addr];
                return true;
          }
-         else
-         {
-               data = 0;
-               return false;
-         }
+
+         return false;
       }
 
       public bool PpuWrite(ushort addr, byte data)
@@ -154,7 +150,7 @@ namespace cpu6502
 
       public void Reset()
       {
-         pMapper?.Reset();
+         //pMapper?.Reset();
       }
    }
 }

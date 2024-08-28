@@ -15,13 +15,21 @@ namespace cpu6502
 
       public override bool CpuMapRead(ushort addr, out uint mapped_addr)
       {
+         	// if PRGROM is 16KB
+            //     CPU Address Bus          PRG ROM
+            //     0x8000 -> 0xBFFF: Map    0x0000 -> 0x3FFF
+            //     0xC000 -> 0xFFFF: Mirror 0x0000 -> 0x3FFF
+            // if PRGROM is 32KB
+            //     CPU Address Bus          PRG ROM
+            //     0x8000 -> 0xFFFF: Map    0x0000 -> 0x7FFF	
+
          if (addr >= 0x8000 && addr <= 0xFFFF)
          {
-               mapped_addr = addr & (nPRGBanks > 1 ? 0x7FFFU : 0x3FFFU);
+               mapped_addr = addr & (uint)(nPRGBanks > 1 ? 0x7FFF : 0x3FFF);
                return true;
          }
 
-         mapped_addr = 0;
+         mapped_addr = addr;
          return false;
       }
 
@@ -33,7 +41,7 @@ namespace cpu6502
                return true;
          }
 
-         mapped_addr = 0;
+         mapped_addr = addr;
          return false;
       }
 
@@ -41,11 +49,12 @@ namespace cpu6502
       {
          if (addr >= 0x0000 && addr <= 0x1FFF)
          {
-               mapped_addr = addr;
-               return true;
+            // Treat as RAM
+            mapped_addr = addr;
+            return true;
          }
 
-         mapped_addr = 0;
+         mapped_addr = addr;
          return false;
       }
 

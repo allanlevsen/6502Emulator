@@ -11,6 +11,8 @@ namespace cpu6502
       {
          nPRGBanks = prgBanks;
          nCHRBanks = chrBanks;
+
+         Reset();
       }
 
       // Destructor in C# is represented by a Finalizer, but it's not common to use them unless you have unmanaged resources.

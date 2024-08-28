@@ -3,13 +3,12 @@ using cpu6502.Interfaces;
 using SFML.Graphics; 
 namespace cpu6502
 {
-   public class Ppu //: IPpu
+   public class Ppu
    {
 
       public byte[,] tblName = new byte[2, 1024];
       public byte[,] tblPattern = new byte[2, 4096]; // not required, custom
       private byte[] tblPalette = new byte[32];
-
       public Color[] palScreen = new Color[0x40];
 
       // SFML screen/image/texture/sprite
@@ -18,24 +17,22 @@ namespace cpu6502
       public Texture sprTexture;
 
 
-// name tables
+      // name tables
       public Sprite[] sprNameTable = new Sprite[2];
       public Image sprNameTable0Image;
-      public Image sprNameTable1Image;
       public Texture sprNameTable0Texture;
+      public Image sprNameTable1Image;
       public Texture sprNameTable1Texture;
 
-// pattern tables
+      // pattern tables
       public Sprite[] sprPatternTable = new Sprite[2];
       public Image sprPatternTable0Image;
-      public Image sprPatternTable1Image;
       public Texture sprPatternTable0Texture;
+      public Image sprPatternTable1Image;
       public Texture sprPatternTable1Texture;
 
       public Sprite GetScreen() => sprScreen;
       public Sprite GetNameTable(byte i) => sprNameTable[i];
-      public Sprite GetPatternTable(byte i, byte palette) => sprPatternTable[i];
-      public Color GetColourFromPaletteRam(byte palette, byte pixel) => palScreen[palette * 4 + pixel];
       public bool FrameComplete { get; set; } = false;
 
       [StructLayout(LayoutKind.Explicit)]
@@ -43,43 +40,42 @@ namespace cpu6502
       {
          [FieldOffset(0)] public byte reg;
 
-         public bool SpriteOverflow
+         public byte SpriteOverflow
          {
-            get { return (reg & (1 << 2)) != 0; }
+            get { return (byte)(reg & (1 << 2)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 2);
                   else
                      reg &= (byte)(~(1 << 2) & 0xFF);
             }
          }
 
-         public bool SpriteZeroHit
+         public byte SpriteZeroHit
          {
-            get { return (reg & (1 << 1)) != 0; }
+            get { return (byte)(reg & (1 << 1)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 1);
                   else
                      reg &= (byte)(~(1 << 1) & 0xFF);
             }
          }
 
-         public bool VerticalBlank
+         public byte VerticalBlank
          {
-            get { return (reg & 1) != 0; }
+            get { return (byte)(reg & 1); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= 1;
                   else
                      reg &= 0xFE;
             }
          }
       }
-
       public Status status;
 
       [StructLayout(LayoutKind.Explicit)]
@@ -108,8 +104,13 @@ namespace cpu6502
 
          public bool RenderBackground
          {
-            get { return (reg & 0x08) != 0; }
-            set { reg = (byte)(value ? (reg | 0x08) : (reg & ~0x08)); }
+            get { 
+               byte regResult = (byte)(reg & 0x08);
+               return (reg & 0x08) != 0; 
+            }
+            set { 
+               reg = (byte)(value ? (reg | 0x08) : (reg & ~0x08)); 
+            }
          }
 
          public bool RenderSprites
@@ -136,112 +137,109 @@ namespace cpu6502
             set { reg = (byte)(value ? (reg | 0x80) : (reg & ~0x80)); }
          }
       }
-
       public Mask mask;
-
 
       [StructLayout(LayoutKind.Explicit)]
       public struct PPUCTRL
       {
          [FieldOffset(0)] public byte reg;
 
-         public bool NametableX
+         public byte NametableX
          {
-            get { return (reg & (1 << 0)) != 0; }
+            get { return (byte)(reg & (1 << 0)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 0);
                   else
                      reg &= (byte)(~(1 << 0) & 0xFF);
             }
          }
 
-         public bool NametableY
+         public byte NametableY
          {
-            get { return (reg & (1 << 1)) != 0; }
+            get { return (byte)(reg & (1 << 1)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 1);
                   else
                      reg &= (byte)(~(1 << 1) & 0xFF);
             }
          }
 
-         public bool IncrementMode
+         public byte IncrementMode
          {
-            get { return (reg & (1 << 2)) != 0; }
+            get { return (byte)(reg & (1 << 2)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 2);
                   else
                      reg &= (byte)(~(1 << 2) & 0xFF);
             }
          }
 
-         public bool PatternSprite
+         public byte PatternSprite
          {
-            get { return (reg & (1 << 3)) != 0; }
+            get { return (byte)(reg & (1 << 3)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 3);
                   else
                      reg &= (byte)(~(1 << 3) & 0xFF);
             }
          }
 
-         public bool PatternBackground
+         public byte PatternBackground
          {
-            get { return (reg & (1 << 4)) != 0; }
+            get { return (byte)(reg & (1 << 4)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 4);
                   else
                      reg &= (byte)(~(1 << 4) & 0xFF);
             }
          }
 
-         public bool SpriteSize
+         public byte SpriteSize
          {
-            get { return (reg & (1 << 5)) != 0; }
+            get { return (byte)(reg & (1 << 5)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 5);
                   else
                      reg &= (byte)(~(1 << 5) & 0xFF);
             }
          }
 
-         public bool SlaveMode // Note: This is marked as unused
+         public byte SlaveMode // Note: This is marked as unused
          {
-            get { return (reg & (1 << 6)) != 0; }
+            get { return (byte)(reg & (1 << 6)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 6);
                   else
                      reg &= (byte)(~(1 << 6) & 0xFF);
             }
          }
 
-         public bool EnableNMI
+         public byte EnableNMI
          {
-            get { return (reg & (1 << 7)) != 0; }
+            get { return (byte)(reg & (1 << 7)); }
             set
             {
-                  if (value)
+                  if (value > 0)
                      reg |= (byte)(1 << 7);
                   else
                      reg &= (byte)(~(1 << 7) & 0xFF);
             }
          }
       }
-
       public PPUCTRL control;
 
       [StructLayout(LayoutKind.Explicit)]
@@ -261,12 +259,12 @@ namespace cpu6502
             set { reg = (ushort)((reg & ~(0x001F << 5)) | ((value & 0x001F) << 5)); }
          }
 
-         public bool NametableX
+         public ushort NametableX
          {
-            get { return (reg & (1 << 10)) != 0; }
+            get { return (ushort)(reg & (1 << 10)); }
             set
             {
-                  if (value)
+                  if (value != 0)
                      reg |= (ushort)(1 << 10);
                   else
                      reg &= (ushort)(~(1 << 10) & 0xFFFF);
@@ -274,12 +272,13 @@ namespace cpu6502
             }
          }
 
-         public bool NametableY
+
+         public ushort NametableY
          {
-            get { return (reg & (1 << 11)) != 0; }
+            get { return (ushort)(reg & (1 << 11)); }
             set
             {
-                  if (value)
+                  if (value != 0)
                      reg |= (ushort)(1 << 11);
                   else
                      reg &= (ushort)(~(1 << 11) & 0xFFFF);
@@ -379,6 +378,10 @@ namespace cpu6502
       }
 
       public Cartridge cart;
+
+      public bool Nmi { get; set; } = false;
+
+public ushort addrOffset = 0;
       public Ppu()
       {
          // name table
@@ -390,19 +393,21 @@ namespace cpu6502
             sprNameTable[1] = new Sprite(sprNameTable1Texture);
 
          // pattern table
-            sprPatternTable[0] = new Sprite();
-            sprPatternTable0Image = new Image(128, 128, Color.Black);
+            sprPatternTable0Image = new Image(128, 128, Color.White);
             sprPatternTable0Texture = new Texture(sprPatternTable0Image);
-            sprPatternTable[0] = new Sprite(sprPatternTable0Texture);
-            sprPatternTable1Image = new Image(128, 128, Color.Black);
+            sprPatternTable[0] = new Sprite(sprPatternTable0Texture) {
+               Scale = new SFML.System.Vector2f(2.0f, 2.0f)
+            };
+            sprPatternTable1Image = new Image(128, 128, Color.White);
             sprPatternTable1Texture = new Texture(sprPatternTable1Image);
-            sprPatternTable[1] = new Sprite(sprPatternTable1Texture);
+            sprPatternTable[1] = new Sprite(sprPatternTable1Texture) {
+               Scale = new SFML.System.Vector2f(2.0f, 2.0f)
+            };
 
-         //sprImage = new Image(256,240, new Color(64,64,64));
          sprImage = new Image(342,261, new Color(64,64,64));
          sprTexture = new Texture(sprImage);
          
-         sprScreen = new Sprite(sprTexture, new IntRect(0,0,256,240)) {
+         sprScreen = new Sprite(sprTexture, new IntRect(1,1,256,240)) {
             Scale = new SFML.System.Vector2f(6.0f, 6.0f)
          };
 
@@ -485,42 +490,78 @@ namespace cpu6502
          cart = cartridge;
       }
 
-      public byte CpuRead(ushort addr, bool rdonly = false)
+      public byte CpuRead(ushort addr, bool rdonly)
       {
          byte data = 0x00;
-         uint mapped_addr = 0;
-         //if (cart.CpuRead(addr, ref data))
-         if (cart.CpuRead(addr, out data))
+
+         if (rdonly)
          {
-            // Cartridge Address Range
-         }
-         else if (addr >= 0x2000 && addr <= 0x3FFF)
-         {
-            addr &= 0x0007;
+            // Reading from PPU registers can affect their contents
+            // so this read-only option is used for examining the
+            // state of the PPU without changing its state. This is
+            // really only used in debug mode.
             switch (addr)
             {
                   case 0x0000: // Control
+                     data = control.reg;
                      break;
                   case 0x0001: // Mask
+                     data = mask.reg;
                      break;
                   case 0x0002: // Status
-                     data = (byte)((status.reg & 0xE0) | (ppuDataBuffer & 0x1F));
-                     status.VerticalBlank = false;
-                     addressLatch = 0;
+                     data = status.reg;
                      break;
                   case 0x0003: // OAM Address
                      break;
                   case 0x0004: // OAM Data
-                     data = POAM[oamAddr];
                      break;
                   case 0x0005: // Scroll
                      break;
                   case 0x0006: // PPU Address
                      break;
                   case 0x0007: // PPU Data
+                     break;
+            }
+         }
+         else
+         {
+            // These are the live PPU registers that respond
+            // to being read from in various ways. Note that not
+            // all the registers are capable of being read from
+            // so they just return 0x00
+            switch (addr)
+            {
+                  // Control - Not readable
+                  case 0x0000: break;
+                  
+                  // Mask - Not readable
+                  case 0x0001: break;
+                  
+                  // Status
+                  case 0x0002:
+                     data = (byte)((status.reg & 0xE0) | (ppuDataBuffer & 0x1F));
+                     status.VerticalBlank = 0;
+                     addressLatch = 0;
+                     break;
+
+                  // OAM Address
+                  case 0x0003: break;
+
+                  // OAM Data
+                  case 0x0004: break;
+
+                  // Scroll - Not readable
+                  case 0x0005: break;
+
+                  // PPU Address - Not readable
+                  case 0x0006: break;
+
+                  // PPU Data
+                  case 0x0007:
                      data = ppuDataBuffer;
-                     ppuDataBuffer = PpuRead(vramAddr.reg, rdonly);
-                     if (addr > 0x3F00) data = ppuDataBuffer;
+                     ppuDataBuffer = PpuRead(vramAddr.reg);
+                     if (vramAddr.reg >= 0x3F00) data = ppuDataBuffer;
+                     vramAddr.reg += (ushort)(control.IncrementMode>0 ? 32 : 1);
                      break;
             }
          }
@@ -530,63 +571,69 @@ namespace cpu6502
 
       public void CpuWrite(ushort addr, byte data)
       {
-         uint mapped_addr = 0;
-         if (cart.CpuWrite(addr, data))
-         {
-            // Cartridge Address Range
-         }
-         else if (addr >= 0x2000 && addr <= 0x3FFF)
-         {
-            addr &= 0x0007;
-            switch (addr)
-            {
-                  case 0x0000: // Control
-                     control.reg = data;
-                     tramAddr.NametableX = control.NametableX;
-                     tramAddr.NametableY = control.NametableY;
-                     break;
-                  case 0x0001: // Mask
-                     mask.reg = data;
-                     break;
-                  case 0x0002: // Status
-                     break;
-                  case 0x0003: // OAM Address
-                     oamAddr = data;
-                     break;
-                  case 0x0004: // OAM Data
-                     POAM[oamAddr] = data;
-                     break;
-                  case 0x0005: // Scroll
-                     if (addressLatch == 0)
-                     {
-                        fineX = (byte)(data & 0x07);
-                        tramAddr.CoarseX = (ushort)(data >> 3);
-                        addressLatch = 1;
-                     }
-                     else
-                     {
-                        tramAddr.FineY = (ushort)(data & 0x07);
-                        tramAddr.CoarseY = (ushort)(data >> 3);
-                        addressLatch = 0;
-                     }
-                     break;
-                  case 0x0006: // PPU Address
-                     if (addressLatch == 0)
-                     {
-                        tramAddr.reg = (ushort)(((data & 0x3F) << 8) | (tramAddr.reg & 0x00FF));
-                        addressLatch = 1;
-                     }
-                     else
-                     {
-                        tramAddr.reg = (ushort)((tramAddr.reg & 0xFF00) | data);
-                        vramAddr.reg = tramAddr.reg;
-                        addressLatch = 0;
-                     }
-                     break;
-                  case 0x0007: // PPU Data
-                     PpuWrite(vramAddr.reg, data);
-                     break;
-            }
+         switch (addr)
+         { 
+            case 0x0000: // Control
+                  control.reg = data;
+                  tramAddr.NametableX = (byte)control.NametableX;
+                  tramAddr.NametableY = (byte)control.NametableY;
+                  break;
+            case 0x0001: // Mask
+                  mask.reg = data;
+                  break;
+            case 0x0002: // Status
+                  break;
+            case 0x0003: // OAM Address
+                  oamAddr = data;
+                  break;
+            case 0x0004: // OAM Data
+                  POAM[oamAddr] = data;
+                  break;
+            case 0x0005: // Scroll
+                  if (addressLatch == 0)
+                  {
+                     fineX = (byte)(data & 0x07);
+                     tramAddr.CoarseX = (byte)(data >> 3);
+                     addressLatch = 1;
+                  }
+                  else
+                  {
+                     tramAddr.FineY = (byte)(data & 0x07);
+                     tramAddr.CoarseY = (byte)(data >> 3);
+                     addressLatch = 0;
+                  }
+                  break;
+            case 0x0006: // PPU Address
+                  if (addressLatch == 0)
+                  {
+                     // PPU address bus can be accessed by CPU via the ADDR and DATA
+                     // registers. The fisrt write to this register latches the high byte
+                     // of the address, the second is the low byte. Note the writes
+                     // are stored in the tram register...
+
+                     tramAddr.reg = (ushort)(((data & 0x3F) << 8) | (tramAddr.reg & 0x00FF));
+                     addressLatch = 1;
+                  }
+                  else
+                  {
+                     // ...when a whole address has been written, the internal vram address
+                     // buffer is updated. Writing to the PPU is unwise during rendering
+                     // as the PPU will maintam the vram address automatically whilst
+                     // rendering the scanline position.
+                     tramAddr.reg = (ushort)((tramAddr.reg & 0xFF00) | data);
+                     vramAddr = tramAddr;
+                     addressLatch = 0;
+                  }
+                  break;
+            case 0x0007: // PPU Data
+                  // All writes from PPU data automatically increment the nametable
+                  // address depending upon the mode set in the control register.
+                  // If set to vertical mode, the increment is 32, so it skips
+                  // one whole nametable row; in horizontal mode it just increments
+                  // by 1, moving to the next column
+                  PpuWrite(vramAddr.reg, data);
+                  vramAddr.reg += (ushort)(control.IncrementMode>0 ? 32 : 1);
+                  break;
          }
       }
 
@@ -595,7 +642,7 @@ namespace cpu6502
          byte data = 0x00;
          addr &= 0x3FFF;
 
-         if (cart.PpuRead(addr, out data))
+         if (cart.PpuRead(addr, ref data))
          {
             // Cartridge Address Range
          }
@@ -695,254 +742,96 @@ namespace cpu6502
          }
       }
 
-      public void Clock()
+      public Sprite GetPatternTable(byte i, byte palette)
       {
-         Random rnd = new Random();
-         int number = rnd.Next(0, 10);
-          
-         sprImage.SetPixel((uint)cycle, (uint)scanline, palScreen[number % 2 == 0 ? 0x3F : 0x30]);
+         // This function draws the CHR ROM for a given pattern table into
+         // an olc::Sprite, using a specified palette. Pattern tables consist
+         // of 16x16 "tiles or characters". It is independent of the running
+         // emulation and using it does not change the systems state, though
+         // it gets all the data it needs from the live system. Consequently,
+         // if the game has not yet established palettes or mapped to relevant
+         // CHR ROM banks, the sprite may look empty. This approach permits a 
+         // "live" extraction of the pattern table exactly how the NES, and 
+         // ultimately the player would see it.
+         
+         // A tile consists of 8x8 pixels. On the NES, pixels are 2 bits, which
+         // gives an index into 4 different colours of a specific palette. There
+         // are 8 palettes to choose from. Colour "0" in each palette is effectively
+         // considered transparent, as those locations in memory "mirror" the global
+         // background colour being used. The mechanics of this are shown in 
+         // detail in ppuRead() & ppuWrite()
 
-         cycle++;
-         if (cycle >= 341)
+         // Characters on NES
+         // ~~~~~~~~~~~~~~~~~
+         // The NES stores characters using 2-bit pixels. These are not stored sequentially
+         // but in singular bit planes. For example:
+         //
+         // 2-Bit Pixels       LSB Bit Plane     MSB Bit Plane
+         // 0 0 0 0 0 0 0 0	  0 0 0 0 0 0 0 0   0 0 0 0 0 0 0 0
+         // 0 1 1 0 0 1 1 0	  0 1 1 0 0 1 1 0   0 0 0 0 0 0 0 0
+         // 0 1 2 0 0 2 1 0	  0 1 1 0 0 1 1 0   0 0 1 0 0 1 0 0
+         // 0 0 0 0 0 0 0 0 =   0 0 0 0 0 0 0 0 + 0 0 0 0 0 0 0 0
+         // 0 1 1 0 0 1 1 0	  0 1 1 0 0 1 1 0   0 0 0 0 0 0 0 0
+         // 0 0 1 1 1 1 0 0	  0 0 1 1 1 1 0 0   0 0 0 0 0 0 0 0
+         // 0 0 0 2 2 0 0 0	  0 0 0 1 1 0 0 0   0 0 0 1 1 0 0 0
+         // 0 0 0 0 0 0 0 0	  0 0 0 0 0 0 0 0   0 0 0 0 0 0 0 0
+         //
+         // The planes are stored as 8 bytes of LSB, followed by 8 bytes of MSB
+
+         for (ushort nTileY = 0; nTileY < 16; nTileY++)
          {
-            cycle = 0;
-            scanline++;
-            if (scanline >= 261)
+            for (ushort nTileX = 0; nTileX < 16; nTileX++)
             {
-               scanline = 0;
-               sprTexture.Update(sprImage);
-               FrameComplete = true;
+                  ushort nOffset = (ushort)(nTileY * 256 + nTileX * 16);
+
+                  for (ushort row = 0; row < 8; row++)
+                  {
+                     byte tile_lsb = PpuRead((ushort)(i * 0x1000 + nOffset + row + 0x0000));
+                     byte tile_msb = PpuRead((ushort)(i * 0x1000 + nOffset + row + 0x0008));
+
+                     for (ushort col = 0; col < 8; col++)
+                     {
+                        byte pixel = (byte)((tile_lsb & 0x01) + (tile_msb & 0x01));
+
+                        tile_lsb >>= 1;
+                        tile_msb >>= 1;
+
+                        if (i==0) {
+                           sprPatternTable0Image.SetPixel((uint)(nTileX * 8 + (7 - col)), (uint)nTileY * 8 + row, GetColourFromPaletteRam(palette, pixel));
+                        } else {
+                           sprPatternTable1Image.SetPixel((uint)(nTileX * 8 + (7 - col)), (uint)nTileY * 8 + row, GetColourFromPaletteRam(palette, pixel));
+                        }
+                     }
+                  }
             }
          }
 
+         sprPatternTable0Texture.Update(sprPatternTable0Image);
+         sprPatternTable1Texture.Update(sprPatternTable1Image);
+
+         return sprPatternTable[i];
+      }
+
+      public Color GetColourFromPaletteRam(byte palette, byte pixel)
+      {
+         // This is a convenience function that takes a specified palette and pixel
+         // index and returns the appropriate screen colour.
+         // "0x3F00"       - Offset into PPU addressable range where palettes are stored
+         // "palette << 2" - Each palette is 4 bytes in size
+         // "pixel"        - Each pixel index is either 0, 1, 2 or 3
+         // "& 0x3F"       - Stops us reading beyond the bounds of the palScreen array
+         return palScreen[PpuRead((ushort)(0x3F00 + (palette << 2) + pixel)) & 0x3F];
+
+         // Note: We don't access tblPalette directly here, instead we know that ppuRead()
+         // will map the address onto the separate small RAM attached to the PPU bus.
       }
 
       // public void Clock()
       // {
-      //    Action IncrementScrollX = () =>
-      //    {
-      //       if (mask.RenderBackground || mask.RenderSprites)
-      //       {
-      //             if (vramAddr.CoarseX == 31)
-      //             {
-      //                vramAddr.CoarseX = 0;
-      //                vramAddr.NametableX = !vramAddr.NametableX;
-      //             }
-      //             else
-      //             {
-      //                vramAddr.CoarseX++;
-      //             }
-      //       }
-      //    };
-
-      //    Action IncrementScrollY = () =>
-      //    {
-      //       if (mask.RenderBackground || mask.RenderSprites)
-      //       {
-      //             if (vramAddr.FineY < 7)
-      //             {
-      //                vramAddr.FineY++;
-      //             }
-      //             else
-      //             {
-      //                vramAddr.FineY = 0;
-
-      //                if (vramAddr.CoarseY == 29)
-      //                {
-      //                   vramAddr.CoarseY = 0;
-      //                   vramAddr.NametableY = !vramAddr.NametableY;
-      //                }
-      //                else if (vramAddr.CoarseY == 31)
-      //                {
-      //                   vramAddr.CoarseY = 0;
-      //                }
-      //                else
-      //                {
-      //                   vramAddr.CoarseY++;
-      //                }
-      //             }
-      //       }
-      //    };
-
-      //    Action TransferAddressX = () =>
-      //    {
-      //       if (mask.RenderBackground || mask.RenderSprites)
-      //       {
-      //             vramAddr.NametableX = tramAddr.NametableX;
-      //             vramAddr.CoarseX = tramAddr.CoarseX;
-      //       }
-      //    };
-
-      //    Action TransferAddressY = () =>
-      //    {
-      //       if (mask.RenderBackground || mask.RenderSprites)
-      //       {
-      //             vramAddr.FineY = tramAddr.FineY;
-      //             vramAddr.NametableY = tramAddr.NametableY;
-      //             vramAddr.CoarseY = tramAddr.CoarseY;
-      //       }
-      //    };
-
-      //    Action LoadBackgroundShifters = () =>
-      //    {
-      //       bgShifterPatternLo = (ushort)((bgShifterPatternLo & 0xFF00) | bgNextTileLsb);
-      //       bgShifterPatternHi = (ushort)((bgShifterPatternHi & 0xFF00) | bgNextTileMsb);
-      //       bgShifterAttribLo = (ushort)((bgShifterAttribLo & 0xFF00) | ((bgNextTileAttrib & 0x01) == 0x01 ? (ushort)0xFF : (ushort)0x00));
-      //       bgShifterAttribHi = (ushort)((bgShifterAttribHi & 0xFF00) | ((bgNextTileAttrib & 0x02) == 0x02 ? (ushort)0xFF : (ushort)0x00));
-      //    };
-
-      //    Action UpdateShifters = () =>
-      //    {
-      //       if (mask.RenderBackground)
-      //       {
-      //             bgShifterPatternLo <<= 1;
-      //             bgShifterPatternHi <<= 1;
-      //             bgShifterAttribLo <<= 1;
-      //             bgShifterAttribHi <<= 1;
-      //       }
-
-      //       if (mask.RenderSprites && cycle >= 1 && cycle < 258)
-      //       {
-      //             for (int i = 0; i < spriteCount; i++)
-      //             {
-      //                if (spriteScanline[i].x > 0)
-      //                {
-      //                   spriteScanline[i].x--;
-      //                }
-      //                else
-      //                {
-      //                   spriteShifterPatternLo[i] <<= 1;
-      //                   spriteShifterPatternHi[i] <<= 1;
-      //                }
-      //             }
-      //       }
-      //    };
-
-      //    if (scanline >= -1 && scanline < 240)
-      //    {
-      //       if (scanline == 0 && cycle == 0)
-      //       {
-      //          cycle = 1;
-      //       }
-
-      //       if (scanline == -1 && cycle == 1)
-      //       {
-      //          status.VerticalBlank = false;
-      //          status.SpriteOverflow = false;
-      //          status.SpriteZeroHit = false;
-               
-      //          for (int i = 0; i < 8; i++)
-      //          {
-      //                spriteShifterPatternLo[i] = 0;
-      //                spriteShifterPatternHi[i] = 0;
-      //          }
-      //       }
-
-      //       if ((cycle >= 2 && cycle < 258) || (cycle >= 321 && cycle < 338))
-      //       {
-      //          UpdateShifters();
-      //       }
-      //    }
-
-      //    // ... [remainder of the Clock method] ...
-
-      //    byte bg_pixel = 0x00;
-      //    byte bg_palette = 0x00;
-
-      //    if (mask.RenderBackground)
-      //    {
-      //       ushort bit_mux = (ushort)(0x8000 >> fineX);
-      //       byte p0_pixel = (byte)((bgShifterPatternLo & bit_mux) > 0 ? 1 : 0);
-      //       byte p1_pixel = (byte)((bgShifterPatternHi & bit_mux) > 0 ? 1 : 0);
-      //       bg_pixel = (byte)((p1_pixel << 1) | p0_pixel);
-
-      //       byte bg_pal0 = (byte)((bgShifterAttribLo & bit_mux) > 0 ? 1 : 0);
-      //       byte bg_pal1 = (byte)((bgShifterAttribHi & bit_mux) > 0 ? 1 : 0);
-      //       bg_palette = (byte)((bg_pal1 << 1) | bg_pal0);
-      //    }
-
-      //    byte fg_pixel = 0x00;
-      //    byte fg_palette = 0x00;
-      //    byte fg_priority = 0x00;
-
-      //    if (mask.RenderSprites)
-      //    {
-      //       bSpriteZeroBeingRendered = false;
-
-      //       for (int i = 0; i < spriteCount; i++)
-      //       {
-      //          if (spriteScanline[i].x == 0)
-      //          {
-      //                byte fg_pixel_lo = (byte)((spriteShifterPatternLo[i] & 0x80) > 0 ? 1 : 0);
-      //                byte fg_pixel_hi = (byte)((spriteShifterPatternHi[i] & 0x80) > 0 ? 1 : 0);
-      //                fg_pixel = (byte)((fg_pixel_hi << 1) | fg_pixel_lo);
-
-      //                fg_palette = (byte)((spriteScanline[i].attribute & 0x03) + 0x04);
-      //                fg_priority = (byte)((spriteScanline[i].attribute & 0x20) == 0 ? 1 : 0);
-
-      //                if (fg_pixel != 0)
-      //                {
-      //                   if (i == 0)
-      //                   {
-      //                      bSpriteZeroBeingRendered = true;
-      //                   }
-
-      //                   break;
-      //                }
-      //          }
-      //       }
-      //    }
-
-      //    byte pixel = 0x00;
-      //    byte palette = 0x00;
-
-      //    if (bg_pixel == 0 && fg_pixel == 0)
-      //    {
-      //       pixel = 0x00;
-      //       palette = 0x00;
-      //    }
-      //    else if (bg_pixel == 0 && fg_pixel > 0)
-      //    {
-      //       pixel = fg_pixel;
-      //       palette = fg_palette;
-      //    }
-      //    else if (bg_pixel > 0 && fg_pixel == 0)
-      //    {
-      //       pixel = bg_pixel;
-      //       palette = bg_palette;
-      //    }
-      //    else if (bg_pixel > 0 && fg_pixel > 0)
-      //    {
-      //       if (fg_priority != 0)
-      //       {
-      //          pixel = fg_pixel;
-      //          palette = fg_palette;
-      //       }
-      //       else
-      //       {
-      //          pixel = bg_pixel;
-      //          palette = bg_palette;
-      //       }
-
-      //       if (bSpriteZeroHitPossible && bSpriteZeroBeingRendered)
-      //       {
-      //          if (mask.RenderBackground != false && mask.RenderSprites != false)
-      //          {
-      //                if (cycle >= 9 && cycle < 258)
-      //                {
-      //                   status.SpriteZeroHit = true;
-      //                }
-      //                else if (cycle >= 1 && cycle < 258)
-      //                {
-      //                   status.SpriteZeroHit = true;
-      //                }
-      //          }
-      //       }
-      //    }
-
-      //    if (cycle-1>=0 && scanline>=0)
-      //       sprImage.SetPixel((uint)cycle - 1, (uint)scanline, GetColourFromPaletteRam(palette, pixel));
-
+      //    Random rnd = new Random();
+      //    int number = rnd.Next(0, 10);
+          
+      //    sprImage.SetPixel((uint)cycle, (uint)scanline, palScreen[number % 2 == 0 ? 0x3F : 0x30]);
 
       //    cycle++;
       //    if (cycle >= 341)
@@ -951,13 +840,386 @@ namespace cpu6502
       //       scanline++;
       //       if (scanline >= 261)
       //       {
-      //          scanline = -1;
+      //          scanline = 0;
       //          sprTexture.Update(sprImage);
-               
       //          FrameComplete = true;
       //       }
       //    }
       // }
+
+      public void Clock()
+      {
+         Action IncrementScrollX = () =>
+         {
+            if (mask.RenderBackground || mask.RenderSprites)
+            {
+                  if (vramAddr.CoarseX == 31)
+                  {
+                     vramAddr.CoarseX = 0;
+                     //vramAddr.NametableX =  !vramAddr.NametableX;
+                     // todo the above, we need to do the following
+                     bool isBitSet = (bool)((vramAddr.reg & (1 << 10)) != 0);
+                     vramAddr.NametableX = (ushort)(isBitSet ? 0 : 1);
+                  }
+                  else
+                  {
+                     vramAddr.CoarseX++;
+                  }
+            }
+         };
+
+         Action IncrementScrollY = () =>
+         {
+            if (mask.RenderBackground || mask.RenderSprites)
+            {
+                  if (vramAddr.FineY < 7)
+                  {
+                     vramAddr.FineY++;
+                  }
+                  else
+                  {
+                     vramAddr.FineY = 0;
+
+                     if (vramAddr.CoarseY == 29)
+                     {
+                        vramAddr.CoarseY = 0;
+                        //vramAddr.NametableY = !vramAddr.NametableY;
+                        bool isBitSet = (bool)((vramAddr.reg & (1 << 11)) != 0);
+                        vramAddr.NametableY = (ushort)(isBitSet ? 0 : 1);
+                     }
+                     else if (vramAddr.CoarseY == 31)
+                     {
+                        vramAddr.CoarseY = 0;
+                     }
+                     else
+                     {
+                        vramAddr.CoarseY++;
+                     }
+                  }
+            }
+         };
+
+         Action TransferAddressX = () =>
+         {
+            if (mask.RenderBackground || mask.RenderSprites)
+            {
+                  vramAddr.NametableX = tramAddr.NametableX;
+                  vramAddr.CoarseX = tramAddr.CoarseX;
+            }
+         };
+
+         Action TransferAddressY = () =>
+         {
+            if (mask.RenderBackground || mask.RenderSprites)
+            {
+                  vramAddr.FineY = tramAddr.FineY;
+                  vramAddr.NametableY = tramAddr.NametableY;
+                  vramAddr.CoarseY = tramAddr.CoarseY;
+            }
+         };
+
+         Action LoadBackgroundShifters = () =>
+         {
+            bgShifterPatternLo = (ushort)((bgShifterPatternLo & 0xFF00) | (byte)bgNextTileLsb);
+            bgShifterPatternHi = (ushort)((bgShifterPatternHi & 0xFF00) | (byte)bgNextTileMsb);
+            bgShifterAttribLo = (ushort)((bgShifterAttribLo & 0xFF00) | (byte)((bgNextTileAttrib & 0b01) != 0 ? 0xFF : 0x00));
+            bgShifterAttribHi = (ushort)((bgShifterAttribHi & 0xFF00) | (byte)((bgNextTileAttrib & 0b10) != 0 ? 0xFF : 0x00));
+         };
+
+         Action UpdateShifters = () =>
+         {
+            if (mask.RenderBackground)
+            {
+                  bgShifterPatternLo <<= 1;
+                  bgShifterPatternHi <<= 1;
+                  bgShifterAttribLo <<= 1;
+                  bgShifterAttribHi <<= 1;
+            }
+
+            if (mask.RenderSprites && cycle >= 1 && cycle < 258)
+            {
+                  for (int i = 0; i < spriteCount; i++)
+                  {
+                     if (spriteScanline[i].x > 0)
+                     {
+                        spriteScanline[i].x--;
+                     }
+                     else
+                     {
+                        spriteShifterPatternLo[i] <<= 1;
+                        spriteShifterPatternHi[i] <<= 1;
+                     }
+                  }
+            }
+         };
+
+         if (scanline >= -1 && scanline < 240)
+         {
+            if (scanline == 0 && cycle == 0)
+            {
+               cycle = 1;
+            }
+
+            if (scanline == -1 && cycle == 1)
+            {
+               status.VerticalBlank = 0;
+               status.SpriteOverflow = 0;
+               status.SpriteZeroHit = 0;
+
+               for (int i = 0; i < 8; i++)
+               {
+                     spriteShifterPatternLo[i] = 0;
+                     spriteShifterPatternHi[i] = 0;
+               }
+            }
+
+            if ((cycle >= 2 && cycle < 258) || (cycle >= 321 && cycle < 338))
+            {
+               UpdateShifters();
+
+               // In these cycles we are collecting and working with visible data
+               // The "shifters" have been preloaded by the end of the previous
+               // scanline with the data for the start of this scanline. Once we
+               // leave the visible region, we go dormant until the shifters are
+               // preloaded for the next scanline.
+
+               // Fortunately, for background rendering, we go through a fairly
+               // repeatable sequence of events, every 2 clock cycles.
+               switch ((cycle - 1) % 8)
+               {
+                  case 0:
+                     // Load the current background tile pattern and attributes into the "shifter"
+                     LoadBackgroundShifters();
+
+                     // Fetch the next background tile ID
+                     // "(vram_addr.reg & 0x0FFF)" : Mask to 12 bits that are relevant
+                     // "| 0x2000"                 : Offset into nametable space on PPU address bus
+
+                     bgNextTileId = PpuRead((ushort)(0x2000 | (vramAddr.reg & 0x0FFF)));
+
+                     // Explanation:
+                     // The bottom 12 bits of the loopy register provide an index into
+                     // the 4 nametables, regardless of nametable mirroring configuration.
+                     // nametable_y(1) nametable_x(1) coarse_y(5) coarse_x(5)
+                     //
+                     // Consider a single nametable is a 32x32 array, and we have four of them
+                     //   0                1
+                     // 0 +----------------+----------------+
+                     //   |                |                |
+                     //   |                |                |
+                     //   |    (32x32)     |    (32x32)     |
+                     //   |                |                |
+                     //   |                |                |
+                     // 1 +----------------+----------------+
+                     //   |                |                |
+                     //   |                |                |
+                     //   |    (32x32)     |    (32x32)     |
+                     //   |                |                |
+                     //   |                |                |
+                     //   +----------------+----------------+
+                     //
+                     // This means there are 4096 potential locations in this array, which 
+                     // just so happens to be 2^12!
+                     break;
+                  case 2:
+                     // Fetch the next background tile attribute. OK, so this one is a bit
+                     // more involved :P
+
+                     // Recall that each nametable has two rows of cells that are not tile 
+                     // information, instead they represent the attribute information that
+                     // indicates which palettes are applied to which area on the screen.
+                     // Importantly (and frustratingly) there is not a 1 to 1 correspondance
+                     // between background tile and palette. Two rows of tile data holds
+                     // 64 attributes. Therfore we can assume that the attributes affect
+                     // 8x8 zones on the screen for that nametable. Given a working resolution
+                     // of 256x240, we can further assume that each zone is 32x32 pixels
+                     // in screen space, or 4x4 tiles. Four system palettes are allocated
+                     // to background rendering, so a palette can be specified using just
+                     // 2 bits. The attribute byte therefore can specify 4 distinct palettes.
+                     // Therefore we can even further assume that a single palette is
+                     // applied to a 2x2 tile combination of the 4x4 tile zone. The very fact
+                     // that background tiles "share" a palette locally is the reason why
+                     // in some games you see distortion in the colours at screen edges.
+
+                     // As before when choosing the tile ID, we can use the bottom 12 bits of
+                     // the loopy register, but we need to make the implementation "coarser"
+                     // because instead of a specific tile, we want the attribute byte for a 
+                     // group of 4x4 tiles, or in other words, we divide our 32x32 address
+                     // by 4 to give us an equivalent 8x8 address, and we offset this address
+                     // into the attribute section of the target nametable.
+
+                     // Reconstruct the 12 bit loopy address into an offset into the
+                     // attribute memory
+
+                     // "(vram_addr.coarse_x >> 2)"        : integer divide coarse x by 4, 
+                     //                                      from 5 bits to 3 bits
+                     // "((vram_addr.coarse_y >> 2) << 3)" : integer divide coarse y by 4, 
+                     //                                      from 5 bits to 3 bits,
+                     //                                      shift to make room for coarse x
+
+                     // Result so far: YX00 00yy yxxx
+
+                     // All attribute memory begins at 0x03C0 within a nametable, so OR with
+                     // result to select target nametable, and attribute byte offset. Finally
+                     // OR with 0x2000 to offset into nametable address space on PPU bus.				
+                     bgNextTileAttrib = PpuRead((ushort)(0x23C0 | (vramAddr.NametableY << 11) 
+                                                         | (vramAddr.NametableY << 10) 
+                                                         | ((vramAddr.CoarseY >> 2) << 3) 
+                                                         | (vramAddr.CoarseX >> 2)));
+
+                     // Right we've read the correct attribute byte for a specified address,
+                     // but the byte itself is broken down further into the 2x2 tile groups
+                     // in the 4x4 attribute zone.
+
+                     // The attribute byte is assembled thus: BR(76) BL(54) TR(32) TL(10)
+                     //
+                     // +----+----+			    +----+----+
+                     // | TL | TR |			    | ID | ID |
+                     // +----+----+ where TL =   +----+----+
+                     // | BL | BR |			    | ID | ID |
+                     // +----+----+			    +----+----+
+                     //
+                     // Since we know we can access a tile directly from the 12 bit address, we
+                     // can analyse the bottom bits of the coarse coordinates to provide us with
+                     // the correct offset into the 8-bit word, to yield the 2 bits we are
+                     // actually interested in which specifies the palette for the 2x2 group of
+                     // tiles. We know if "coarse y % 4" < 2 we are in the top half else bottom half.
+                     // Likewise if "coarse x % 4" < 2 we are in the left half else right half.
+                     // Ultimately we want the bottom two bits of our attribute word to be the
+                     // palette selected. So shift as required...				
+                     if ((vramAddr.CoarseY & 0x02) != 0) bgNextTileAttrib >>= 4;
+                     if ((vramAddr.CoarseX & 0x02) != 0) bgNextTileAttrib >>= 2;
+                     bgNextTileAttrib &= 0x03;
+                     break;
+
+                     // Compared to the last two, the next two are the easy ones... :P
+
+                  case 4: 
+                     // Fetch the next background tile LSB bit plane from the pattern memory
+                     // The Tile ID has been read from the nametable. We will use this id to 
+                     // index into the pattern memory to find the correct sprite (assuming
+                     // the sprites lie on 8x8 pixel boundaries in that memory, which they do
+                     // even though 8x16 sprites exist, as background tiles are always 8x8).
+                     //
+                     // Since the sprites are effectively 1 bit deep, but 8 pixels wide, we 
+                     // can represent a whole sprite row as a single byte, so offsetting
+                     // into the pattern memory is easy. In total there is 8KB so we need a 
+                     // 13 bit address.
+
+                     // "(control.pattern_background << 12)"  : the pattern memory selector 
+                     //                                         from control register, either 0K
+                     //                                         or 4K offset
+                     // "((uint16_t)bg_next_tile_id << 4)"    : the tile id multiplied by 16, as
+                     //                                         2 lots of 8 rows of 8 bit pixels
+                     // "(vram_addr.fine_y)"                  : Offset into which row based on
+                     //                                         vertical scroll offset
+                     // "+ 0"                                 : Mental clarity for plane offset
+                     // Note: No PPU address bus offset required as it starts at 0x0000
+                     bgNextTileLsb = PpuRead((ushort)(control.reg << 12 + bgNextTileId << 4 + vramAddr.FineY + 0));
+
+                     break;
+                  case 6:
+                     // Fetch the next background tile MSB bit plane from the pattern memory
+                     // This is the same as above, but has a +8 offset to select the next bit plane
+                     bgNextTileMsb = PpuRead((ushort)(control.reg << 12 + bgNextTileId << 4 + vramAddr.FineY + 8));
+                     break;
+                  case 7:
+                     // Increment the background tile "pointer" to the next tile horizontally
+                     // in the nametable memory. Note this may cross nametable boundaries which
+                     // is a little complex, but essential to implement scrolling
+                     IncrementScrollX();
+                     break;
+               }
+            }
+
+            // End of a visible scanline, so increment downwards...
+            if (cycle == 256)
+            {
+               IncrementScrollY();
+            }
+
+            //...and reset the x position
+            if (cycle == 257)
+            {
+               LoadBackgroundShifters();
+               TransferAddressX();
+            }
+
+            // Superfluous reads of tile id at end of scanline
+            if (cycle == 338 || cycle == 340)
+            {
+               bgNextTileId = PpuRead((ushort)(0x2000 | (vramAddr.reg & 0x0FFF)));
+            }
+
+            if (scanline == -1 && cycle >= 280 && cycle < 305)
+            {
+               // End of vertical blank period so reset the Y address ready for rendering
+               TransferAddressY();
+            }
+         }
+
+         if (scanline == 240)
+         {
+            // Post Render Scanline - Do Nothing!
+         }        
+
+         if (scanline >= 241 && scanline < 261)
+         {
+            if (scanline == 241 && cycle == 1)
+            {
+               // Effectively end of frame, so set vertical blank flag
+               status.VerticalBlank = 1;
+
+               // If the control register tells us to emit a NMI when
+               // entering vertical blanking period, do it! The CPU
+               // will be informed that rendering is complete so it can
+               // perform operations with the PPU knowing it wont
+               // produce visible artefacts
+               if (control.EnableNMI>0) 
+                  Nmi = true;
+            }
+         }
+
+         byte bg_pixel = 0x00;
+         byte bg_palette = 0x00;
+
+         if (mask.RenderBackground)
+         {
+            ushort bit_mux = (ushort)(0x8000 >> fineX);
+            byte p0_pixel = (byte)((bgShifterPatternLo & bit_mux) > 0 ? 1 : 0);
+            byte p1_pixel = (byte)((bgShifterPatternHi & bit_mux) > 0 ? 1 : 0);
+            bg_pixel = (byte)((p1_pixel << 1) | p0_pixel);
+
+            byte bg_pal0 = (byte)((bgShifterAttribLo & bit_mux) > 0 ? 1 : 0);
+            byte bg_pal1 = (byte)((bgShifterAttribHi & bit_mux) > 0 ? 1 : 0);
+            bg_palette = (byte)((bg_pal1 << 1) | bg_pal0);
+         }
+
+         // we need to offset the co-ordinates by one because SFML 
+         // images cannot be written to in negative x and y values
+         //
+         int imageOffset = 1;
+
+         sprImage.SetPixel((uint)(cycle-1+imageOffset), (uint)(scanline+imageOffset), GetColourFromPaletteRam(bg_palette, bg_pixel));
+
+         // Fake some noise for now
+         //sprImage.SetPixel((uint)((cycle-1)+imageOffset), (uint)(scanline+imageOffset), new Color((byte)(cycle % 255), (byte)(cycle % 255), (byte)((cycle + scanline) % 255)));
+
+         cycle++;
+         if (cycle >= 341)
+         {
+            cycle = 0;
+            scanline++;
+            if (scanline >= 261)
+            {
+               scanline = -1;
+               sprTexture.Update(sprImage);
+               addrOffset = 0;
+               FrameComplete = true;
+            }
+         }
+      }
+      
 
       public void Reset()
       {
@@ -981,6 +1243,5 @@ namespace cpu6502
          tramAddr.reg = 0x0000;
       }
 
-      public bool Nmi { get; set; } = false;
    }
 }

@@ -76,7 +76,7 @@ namespace cpu6502
             //
             this.startAssemblyColumn = 55;
             this.startAssemblyRow = 11;
-            this.maxAssemblyLines = 27;
+            this.maxAssemblyLines = 20;
             this.midPoint = 14;
 
             this.startRamColumn = 3;
@@ -223,7 +223,7 @@ namespace cpu6502
         static public float fResidualTime = 0.0f;
         static public float fElapsedTime = 0.0f;
 
-
+        static public byte nSelectedPalette = 0x00;
         static Func<ushort, byte, string> hex = (n, d) =>
         {
             StringBuilder s = new StringBuilder(new string('0', d));
@@ -261,18 +261,21 @@ namespace cpu6502
             // Testing code to ensure the update texture and draw is working correctly
             //
 
-            // bus.ppu.sprNameTable0Image = new Image(341, 261, Color.Black);
-            // bus.ppu.sprTexture = new Texture(bus.ppu.sprNameTable0Image);
-            // bus.ppu.sprScreen = new Sprite(bus.ppu.sprTexture, new IntRect(0,0,256,240)) {
-            //     Scale = new SFML.System.Vector2f(5.0f, 5.0f)
-            // };
+            bus.ppu.sprNameTable0Image = new Image(341, 261, Color.Black);
+            bus.ppu.sprTexture = new Texture(bus.ppu.sprNameTable0Image);
+            bus.ppu.sprScreen = new Sprite(bus.ppu.sprTexture, new IntRect(0,0,256,240)) {
+                Scale = new SFML.System.Vector2f(5.0f, 5.0f)
+            };
 
-            // int offset = 0;
+            int offset = 0;
 
             //
             // end of testing code
             //
             ////////////////////////////////////////////////////////////////////////
+                
+            bus.ppu.sprPatternTable[0].Position = new Vector2f(1620, 1185);
+            bus.ppu.sprPatternTable[1].Position = new Vector2f(1920, 1185);
 
 
             while (window.IsOpen)
@@ -349,8 +352,8 @@ namespace cpu6502
                 DrawAssemblyCode("$"+ hex(bus.cpu.pc,4));
                 // window.Draw(pageText.zeroPageRamLable);
                 // window.Draw(pageText.programRamLable); 
-                // DrawRam(0x0000, pageText.maxMemoryLines, 16, true);
-                // DrawRam(0x8000, pageText.maxMemoryLines, 16, false);
+                DrawRam(0x2000, pageText.maxMemoryLines, 16, true);
+                DrawRam(0xC000, pageText.maxMemoryLines, 16, false);
 
                 ////////////////////////////////////////////////////////////////////////
                 //
@@ -386,25 +389,15 @@ namespace cpu6502
                     bus.ppu.FrameComplete = false;
                 }
 
-                window.Draw(bus.ppu.sprScreen);
+                //window.Draw(bus.ppu.sprScreen);
+
+                window.Draw(bus.ppu.GetPatternTable(0, nSelectedPalette));
+                window.Draw(bus.ppu.GetPatternTable(1, nSelectedPalette));
 
                 window.DispatchEvents();
                 window.Display();
             }
         }
-
-        private static void LoadProgram()
-        {
-            ushort nOffset = programCodeStartingAddress;
-            foreach (var op in opCodesArray)
-            {
-                byte opByte = byte.Parse(op, NumberStyles.HexNumber);
-                cpu.bus.ram[nOffset++] = opByte;
-            }
-            programCodeEndingAddress = nOffset;
-        }
-
-
 
         static void OnKeyPressed(object sender, SFML.Window.KeyEventArgs e)
         {
@@ -421,16 +414,13 @@ namespace cpu6502
             }
 
 
-            if (e.Code == Keyboard.Key.Space) {
-                if (cpu.pc <= programCodeEndingAddress) {
-                    do
-                    {
-                        cpu.clock();
-                    } 
-                    while (!cpu.complete());
-                } else {
-                    cpu.reset();
-                }
+            if (e.Code == Keyboard.Key.C) {
+				// Clock enough times to execute a whole CPU instruction
+				do { bus.clock(); } while (!bus.cpu.complete());
+				// CPU clock runs slower than system clock, so it may be
+				// complete for additional system clock cycles. Drain
+				// those out
+				do { bus.clock(); } while (bus.cpu.complete());
             }
 
             if (e.Code == Keyboard.Key.R)
@@ -446,6 +436,13 @@ namespace cpu6502
             if (e.Code == Keyboard.Key.N)
             {
                 cpu.nmi();
+            }
+
+            // selected pallete
+            if (e.Code == Keyboard.Key.P)
+            {
+                nSelectedPalette++;
+                nSelectedPalette = nSelectedPalette &= 0x07;
             }
 
             if (e.Code == Keyboard.Key.Escape)
@@ -498,7 +495,7 @@ namespace cpu6502
             {
                 // Get the index of the item
                 indexPc = mapAsm.ToList().FindIndex(kvp => kvp.Key == foundItem.Key);
-                if (indexPc>pageText.midPoint && mapAsm.Count>27)
+                if (indexPc>pageText.midPoint && mapAsm.Count>20)
                 {
                     // there are more lines that fits on the page and
                     // the current PC > half of the list
